@@ -1,0 +1,5 @@
+### Webstorm, IntelliJ etc.
+.idea
+
+### node stuff
+node_modules
