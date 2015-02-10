@@ -2,7 +2,9 @@
  * Created by braunreu on 09.02.15.
  */
 'use strict';
-var request = require('request');
+var request = require('request-promise');
+var BPromise = require('bluebird');
+var HttpError = require('./HttpError');
 
 /** this client wraps the http calls for easy accessing the api. */
 function ShopwareClient(apiBaseUrl, apiUser, apiKey) {
@@ -11,27 +13,45 @@ function ShopwareClient(apiBaseUrl, apiUser, apiKey) {
   this.apiKey = apiKey;
 }
 
-ShopwareClient.prototype.get = function(url) {
-  request.get(this.baseUrl + url, function (error, response, body) {
-    if(error) {
-      console.log(error);
-    } else {
-      console.log(body);
-    }
+function errorHandler(error) {
+  return BPromise.reject(new HttpError(error.statusCode, error.message, error.errors));
+}
+
+function successHandler(body) {
+  body = JSON.parse(body);
+  return BPromise.resolve(body);
+}
+
+ShopwareClient.prototype._call = function(url, method, data) {
+  return request({
+    method: method,
+    uri: this.baseUrl + url,
+    auth: {
+      user: this.apiUser,
+      pass: this.apiKey,
+      sendImmediately: false
+    },
+    body: JSON.stringify(data)
   })
-    .auth(this.apiUser, this.apiKey, false);
+    .then(successHandler)
+    .catch(errorHandler);
 };
 
-ShopwareClient.prototype.post = function (url, params) {
 
+ShopwareClient.prototype.get = function(url) {
+    return this._call(url, 'GET');
 };
 
-ShopwareClient.prototype.put = function (url, params) {
-
+ShopwareClient.prototype.post = function (url, data) {
+  return this._call(url, 'POST', data);
 };
 
-ShopwareClient.prototype.delete = function (url, params) {
+ShopwareClient.prototype.put = function (url, data) {
+  return this._call(url, 'PUT', data);
+};
 
+ShopwareClient.prototype.delete = function (url, data) {
+  return this._call(url, 'DELETE', data);
 };
 
 module.exports = ShopwareClient;
