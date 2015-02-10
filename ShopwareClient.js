@@ -50,8 +50,8 @@ ShopwareClient.prototype.put = function (url, data) {
   return this._call(url, 'PUT', data);
 };
 
-ShopwareClient.prototype.delete = function (url, data) {
-  return this._call(url, 'DELETE', data);
+ShopwareClient.prototype.delete = function (url) {
+  return this._call(url, 'DELETE');
 };
 
 module.exports = ShopwareClient;
